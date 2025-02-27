@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" type="image/x-icon" href="./img/Favicon.png" />
+    <title>Juego de Triqui</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap"
+      rel="stylesheet"
+    />
+    <style></style>
+  </head>
+  <body>
+    <h1>Juego de Triqui</h1>
+
+    <div class="options">
+      <button id="vs-human" class="active">Contra un Humano</button>
+      <button id="vs-machine">Contra la Máquina</button>
+    </div>
+
+    <div class="game-container">
+      <div class="status" id="status">Turno de X</div>
+
+      <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+
+      <div class="winner-message" id="winner-message">¡TRIQUI!</div>
+
+      <button class="reset" id="reset">Reiniciar</button>
+    </div>
+    <footer>
+      <div class="logo_desarrollador">
+        <img src="./img/logo_letra_blanca_sin_fondo.png" alt="Logo Desarrollador" />
+      </div>
+    </footer>
+    <script src="Interactividad.js"></script>
+  </body>
+</html>

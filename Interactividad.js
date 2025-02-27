@@ -12,19 +12,24 @@ document.addEventListener('DOMContentLoaded', function () {
     let gameActive = true;
     let vsAI = false;
 
+    // Combinaciones ganadoras (filas, columnas y diagonales)
     const winningConditions = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8], // filas
         [0, 3, 6], [1, 4, 7], [2, 5, 8], // columnas
         [0, 4, 8], [2, 4, 6]            // diagonales
     ];
 
+    // Resaltar celdas ganadoras sin usar la línea roja
     function highlightWinningCells(combination) {
         combination.forEach(index => {
             cells[index].classList.add('winner');
         });
+
+        // Mostrar mensaje de TRIQUI
         winnerMessage.style.display = 'block';
     }
 
+    // Cambio de modo de juego
     vsHuman.addEventListener('click', function () {
         vsAI = false;
         vsHuman.classList.add('active');
@@ -42,62 +47,77 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Función para manejar el clic en una celda
     function handleCellClick(clickedCellEvent) {
         const clickedCell = clickedCellEvent.target;
         const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
 
+        // Verificar si la celda ya está ocupada o el juego está inactivo
         if (gameState[clickedCellIndex] !== '' || !gameActive) {
             return;
         }
 
+        // Actualizar el estado del juego y la UI
         gameState[clickedCellIndex] = currentPlayer;
         clickedCell.textContent = currentPlayer;
 
+        // Verificar si hay un ganador
         checkResult();
 
+        // Si está en modo AI y el juego sigue activo, hacer el movimiento de la IA
         if (vsAI && gameActive && currentPlayer === 'O') {
             setTimeout(makeAIMove, 500);
         }
     }
 
+    // Movimiento de la IA (nivel medio con Minimax limitado)
     function makeAIMove() {
-        let bestScore = -Infinity;
-        let bestMove;
+        const emptyCells = gameState.reduce((acc, cell, index) => {
+            if (cell === '') acc.push(index);
+            return acc;
+        }, []);
 
-        for (let i = 0; i < gameState.length; i++) {
-            if (gameState[i] === '') {
-                gameState[i] = 'O'; // Simula el movimiento de la IA
-                let score = minimax(gameState, 0, false);
-                gameState[i] = ''; // Deshace el movimiento
+        if (emptyCells.length > 0) {
+            let aiMove;
 
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = i;
+            // Lógica para el nivel medio: limitar el análisis de Minimax a 2 niveles de profundidad
+            let bestScore = -Infinity;
+            for (let i = 0; i < gameState.length; i++) {
+                if (gameState[i] === '') {
+                    gameState[i] = 'O'; // Supone que la IA juega con 'O'
+                    let score = minimax(gameState, 0, false, 2); // Limitar a 2 niveles de profundidad
+                    gameState[i] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        aiMove = i;
+                    }
                 }
             }
-        }
 
-        if (bestMove !== undefined) {
-            gameState[bestMove] = currentPlayer;
-            cells[bestMove].textContent = currentPlayer;
-
-            checkResult();
+            // Realizar el movimiento calculado
+            if (aiMove !== undefined) {
+                gameState[aiMove] = currentPlayer;
+                cells[aiMove].textContent = currentPlayer;
+                checkResult();
+            }
         }
     }
 
-    function minimax(state, depth, isMaximizing) {
+    // Algoritmo Minimax con profundidad limitada
+    function minimax(state, depth, isMaximizing, maxDepth) {
         const winner = checkWinner();
 
-        if (winner === 'X') return -10 + depth; // Penaliza si gana el humano
-        if (winner === 'O') return 10 - depth;  // Premia si gana la IA
-        if (!state.includes('')) return 0;     // Empate
+        // Comprobar si hay un ganador o empate
+        if (winner === 'X') return -10 + depth;
+        if (winner === 'O') return 10 - depth;
+        if (!state.includes('') || depth >= maxDepth) return 0; // Empate o profundidad máxima alcanzada
 
         if (isMaximizing) {
             let maxEval = -Infinity;
             for (let i = 0; i < state.length; i++) {
                 if (state[i] === '') {
                     state[i] = 'O';
-                    let eval = minimax(state, depth + 1, false);
+                    let eval = minimax(state, depth + 1, false, maxDepth);
                     state[i] = '';
                     maxEval = Math.max(maxEval, eval);
                 }
@@ -108,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
             for (let i = 0; i < state.length; i++) {
                 if (state[i] === '') {
                     state[i] = 'X';
-                    let eval = minimax(state, depth + 1, true);
+                    let eval = minimax(state, depth + 1, true, maxDepth);
                     state[i] = '';
                     minEval = Math.min(minEval, eval);
                 }
@@ -117,24 +137,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Verificar el ganador
     function checkWinner() {
-        for (let condition of winningConditions) {
-            const [a, b, c] = condition;
-            if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+        for (let i = 0; i < winningConditions.length; i++) {
+            const [a, b, c] = winningConditions[i];
+            if (gameState[a] !== '' && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
                 return gameState[a];
             }
         }
         return null;
     }
 
+    // Verificar el resultado del juego
     function checkResult() {
         let roundWon = false;
         let winningCombination = null;
 
+        // Verificar todas las condiciones de victoria
         for (let i = 0; i < winningConditions.length; i++) {
             const [a, b, c] = winningConditions[i];
-            if (gameState[a] !== '' && 
-                gameState[a] === gameState[b] && 
+
+            if (gameState[a] !== '' &&
+                gameState[a] === gameState[b] &&
                 gameState[a] === gameState[c]) {
                 roundWon = true;
                 winningCombination = winningConditions[i];
@@ -142,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Si hay un ganador
         if (roundWon) {
             status.textContent = `¡Jugador ${currentPlayer} ha ganado!`;
             gameActive = false;
@@ -149,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Verificar si hay empate
         const roundDraw = !gameState.includes('');
         if (roundDraw) {
             status.textContent = '¡Empate!';
@@ -156,10 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Cambiar de jugador
         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
         status.textContent = `Turno de ${currentPlayer}`;
     }
 
+    // Reiniciar el juego
     function resetGame() {
         gameState = ['', '', '', '', '', '', '', '', ''];
         currentPlayer = 'X';
@@ -172,11 +200,13 @@ document.addEventListener('DOMContentLoaded', function () {
             cell.classList.remove('winner');
         });
 
+        // Si está en modo IA y le toca a la IA, hacer su movimiento
         if (vsAI && currentPlayer === 'O') {
             setTimeout(makeAIMove, 500);
         }
     }
 
+    // Agregar event listeners
     cells.forEach(cell => {
         cell.addEventListener('click', handleCellClick);
     });

@@ -4,6 +4,7 @@ let gameState = ['', '', '', '', '', '', '', '', ''];
 let currentPlayer = 'X';
 let gameActive = true;
 let vsAI = false;
+const difficultyDepth = 4; // Ajustar la dificultad aquí
 
 const winningConditions = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // filas
@@ -59,26 +60,27 @@ function makeAIMove() {
     }, []);
 
     if (emptyCells.length > 0) {
-        let aiMove;
-
         let bestScore = -Infinity;
-        for (let i = 0; i < gameState.length; i++) {
-            if (gameState[i] === '') {
-                gameState[i] = 'O';
-                let score = minimax(gameState, 0, false, 4); // Profundidad 4 para dificultad intermedia-avanzada
-                gameState[i] = '';
-                if (score > bestScore) {
-                    bestScore = score;
-                    aiMove = i;
-                }
+        let bestMoves = [];
+
+        for (let i = 0; i < emptyCells.length; i++) {
+            const move = emptyCells[i];
+            gameState[move] = 'O';
+            let score = minimax(gameState, 0, false, difficultyDepth);
+            gameState[move] = '';
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMoves = [move];
+            } else if (score === bestScore) {
+                bestMoves.push(move);
             }
         }
 
-        if (aiMove !== undefined) {
-            gameState[aiMove] = currentPlayer;
-            cells[aiMove].textContent = currentPlayer;
-            checkResult();
-        }
+        const aiMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        gameState[aiMove] = currentPlayer;
+        cells[aiMove].textContent = currentPlayer;
+        checkResult();
     }
 }
 
